@@ -43,7 +43,14 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "instantpay",
+    "ipay",
+    "payment solution",
+    "sms",
+    "read-sms",
+    "sms detection",
+    "sms retriever"
   ],
   "repository": {
     "type": "git",

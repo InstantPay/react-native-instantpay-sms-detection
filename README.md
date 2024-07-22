@@ -1,6 +1,6 @@
 # react-native-instantpay-sms-detection
 
-SMS Retriever
+With the [SMS Detection API](https://developers.google.com/identity/sms-retriever/overview), You can automatically perform SMS-based user verification in your Android app without requiring users to manually type verification codes or granting any extra app permissions.
 
 ## Installation
 
@@ -8,21 +8,55 @@ SMS Retriever
 npm install react-native-instantpay-sms-detection
 ```
 
-## Usage
+## Basic Usage
 
 
 ```js
-import { multiply } from 'react-native-instantpay-sms-detection';
+import RNSmsRead from 'react-native-instantpay-sms-detection';
 
 // ...
 
-const result = await multiply(3, 7);
+const requestPhoneNumber = async () => {
+
+    let result = await RNSmsRead.requestPhoneNumber();
+
+    console.log(result);
+}
+
+const startSMSListen = async () => {
+
+    removeListener();
+
+    listenOnChangeState(); 
+
+    let result = await RNSmsRead.startSmsRetriever();
+
+    console.log(result);
+} 
+
+const listenOnChangeState = () => {
+    RNSmsRead.addEventListener("StartSmsListener",handleConnection)
+}
+
+const removeListener = () => {
+    RNSmsRead.removeEventListener("StartSmsListener",handleConnection)
+}
+
+handleConnection = (resp) => {
+    console.log('response ', resp);
+}
 ```
 
+## Methods
 
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+| Method                          | Return             | Description                                             |
+| :------------------------------ | :----------------- | :------------------------------------------------------ |
+| requestPhoneNumber()            | `Promise<String>`  | Obtain the user's phone number (using the hint picket). |
+| startSmsRetriever()             | `Promise<Boolean>` | Start to listen for SMS messages.                       |
+| addEventListener(               |                    |                                                         |
+|    eventName,                   |                    |                                                         |
+|    Function)                    | `Promise<String>`  | Get the SMS                                             |
+| removeEventListener()           | `Void`             | Stop to listen for SMS messages.                        |
 
 ## License
 
@@ -30,4 +64,4 @@ MIT
 
 ---
 
-Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Created By [Instantpay](https://www.instantpay.in)
