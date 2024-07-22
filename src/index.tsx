@@ -17,59 +17,65 @@ const InstantpaySmsDetection = NativeModules.InstantpaySmsDetection
         }
     );
 
-const InstantpaySmsDetectionEventEmitter = new NativeEventEmitter(InstantpaySmsDetection);
+let RNSmsRead:any = null;
+if(Platform.OS === "android"){
 
-const CONNECTIVITY_EVENT = ['StartSmsListener'];
+    const InstantpaySmsDetectionEventEmitter = new NativeEventEmitter(InstantpaySmsDetection);
 
-const _subscriptions = new Map();
+    const CONNECTIVITY_EVENT = ['StartSmsListener'];
 
-const RNSmsRead = (Platform.OS === "ios") ? null : {
-    addEventListener: (eventName:string, handler:any) => {
+    const _subscriptions = new Map();
 
-        let listener;
+    RNSmsRead = {
+        addEventListener: (eventName:string, handler:any) => {
 
-        if(CONNECTIVITY_EVENT.includes(eventName)){
+            let listener;
 
-            listener = InstantpaySmsDetectionEventEmitter.addListener(
-                eventName,
-                (appStateData) => {
-                    handler(appStateData);
-                }
-            );
-        }
-        else{
+            if(CONNECTIVITY_EVENT.includes(eventName)){
 
-            console.warn('Trying to subscribe to unknown event: "' + eventName + '"');
+                listener = InstantpaySmsDetectionEventEmitter.addListener(
+                    eventName,
+                    (appStateData) => {
+                        handler(appStateData);
+                    }
+                );
+            }
+            else{
+
+                console.warn('Trying to subscribe to unknown event: "' + eventName + '"');
+
+                return {
+                    remove: () => {}
+                };
+            }
+
+            _subscriptions.set(handler, listener);
 
             return {
-                remove: () => {}
+                remove: () => (RNSmsRead!=null) ? RNSmsRead.removeEventListener(eventName, handler) : null
             };
+        },
+        removeEventListener: (_eventName:string, handler:any) => {
+            
+            const listener = _subscriptions.get(handler);
+            
+            if (!listener) {
+                return;
+            }
+            
+            listener.remove();
+
+            _subscriptions.delete(handler);
+        },
+        requestPhoneNumber: () => {
+            return InstantpaySmsDetection.requestPhoneNumber();
+        },
+        startSmsRetriever:() =>{
+            return InstantpaySmsDetection.startSmsRetriever();
         }
-
-        _subscriptions.set(handler, listener);
-
-        return {
-            remove: () => (RNSmsRead!=null) ? RNSmsRead.removeEventListener(eventName, handler) : null
-        };
-    },
-    removeEventListener: (_eventName:string, handler:any) => {
-        
-        const listener = _subscriptions.get(handler);
-        
-        if (!listener) {
-            return;
-        }
-        
-        listener.remove();
-
-        _subscriptions.delete(handler);
-    },
-    requestPhoneNumber: () => {
-        return InstantpaySmsDetection.requestPhoneNumber();
-    },
-    startSmsRetriever:() =>{
-        return InstantpaySmsDetection.startSmsRetriever();
     }
+
+    
 }
 
 export default RNSmsRead;
