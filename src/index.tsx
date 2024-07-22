@@ -23,7 +23,7 @@ const CONNECTIVITY_EVENT = ['StartSmsListener'];
 
 const _subscriptions = new Map();
 
-const RNSmsRead = {
+const RNSmsRead = (Platform.OS === "ios") ? null : {
     addEventListener: (eventName:string, handler:any) => {
 
         let listener;
@@ -49,7 +49,7 @@ const RNSmsRead = {
         _subscriptions.set(handler, listener);
 
         return {
-            remove: () => RNSmsRead.removeEventListener(eventName, handler)
+            remove: () => (RNSmsRead!=null) ? RNSmsRead.removeEventListener(eventName, handler) : null
         };
     },
     removeEventListener: (_eventName:string, handler:any) => {
