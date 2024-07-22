@@ -1,25 +1,183 @@
 package com.instantpaysmsdetection
 
+import android.app.Activity
+import android.content.Intent
+import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
+import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableMap
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import com.google.android.gms.auth.api.identity.Identity
 
-class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) :
-  ReactContextBaseJavaModule(reactContext) {
+class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-  override fun getName(): String {
-    return NAME
-  }
+    val SUCCESS: String = "SUCCESS"
+    val FAILED: String = "FAILED"
+    lateinit var DATA: String
+    private var responsePromise: Promise? = null
+    private  var phoneNumberHelper: PhoneNumberHelper
+    private var smsHelper: SmsHelper
 
-  // Example method
-  // See https://reactnative.dev/docs/native-modules-android
-  @ReactMethod
-  fun multiply(a: Double, b: Double, promise: Promise) {
-    promise.resolve(a * b)
-  }
+    override fun getName(): String {
+        return NAME
+    }
 
-  companion object {
-    const val NAME = "InstantpaySmsDetection"
-  }
+    companion object {
+        const val NAME = "InstantpaySmsDetection"
+
+        const val LOG_TAG = "IpaySmsDetectLog*"
+
+        private lateinit var reactContexts: ReactApplicationContext
+
+        const val REQUEST_PHONE_NUMBER_CODE = 101
+    }
+
+    private val registerActivityResult = object : BaseActivityEventListener() {
+        override fun onActivityResult(
+            activity: Activity?,
+            requestCode: Int,
+            resultCode: Int,
+            data: Intent?
+        ) {
+            super.onActivityResult(activity, requestCode, resultCode, data)
+
+            //logPrint("Reached on onActivityResultw ${requestCode}")
+
+            if(requestCode == REQUEST_PHONE_NUMBER_CODE){
+
+                try {
+
+                    val phoneNumber = Identity.getSignInClient(currentActivity!!).getPhoneNumberFromIntent(data)
+
+                    val output: WritableMap = Arguments.createMap()
+                    output.putString("phoneNumber", phoneNumber)
+
+                    resolve("Successful", SUCCESS, output)
+                }
+                catch (e: Exception){
+                    resolve(e.message!!.stringOnly(), FAILED)
+                }
+            }
+
+        }
+    }
+
+    init {
+        reactContexts = reactContext
+
+        phoneNumberHelper = PhoneNumberHelper()
+
+        smsHelper = SmsHelper()
+
+        reactContexts.addActivityEventListener(registerActivityResult);
+    }
+
+    @ReactMethod
+    fun requestPhoneNumber(promise: Promise) {
+
+        responsePromise = promise
+
+        val activity = currentActivity
+
+        phoneNumberHelper.requestPhoneNumber(reactContexts, activity!!, promise)
+    }
+
+    @ReactMethod
+    fun startSmsRetriever(promise: Promise) {
+
+        responsePromise = promise
+
+        val activity = currentActivity
+
+        smsHelper.startRetriever(reactContexts, activity!!, promise)
+    }
+
+    // Required for rn built in EventEmitter Calls.
+    @ReactMethod
+    fun addListener(eventName: String?) {
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int?) {
+
+    }
+
+    /**
+     * Help to return data to React native
+     */
+    private fun resolve(message: String,status: String = FAILED,data: WritableMap? = null ,actCode: String = "") {
+
+        if (responsePromise == null) {
+            return;
+        }
+
+        val map: WritableMap = Arguments.createMap()
+        map.putString("status", status)
+        map.putString("message", message)
+
+        if(data != null){
+            map.putMap("data", data)
+        }
+        else{
+            map.putString("data", "")
+        }
+
+        responsePromise!!.resolve(map)
+        responsePromise = null
+    }
+
+    /**
+     * Send Event to React Native
+     */
+    private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
+        if (reactContext.hasCatalystInstance()) {
+
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                .emit(eventName, params)
+        }
+    }
+
+    /**
+     * extract digit from string and return
+     */
+    private fun String.digitsOnly(): String{
+        val regex = Regex("[^0-9]")
+        return regex.replace(this, "")
+    }
+
+    /**
+     * extract alpha-numeric from string and return
+     */
+    private fun String.alphaNumericOnly(): String{
+        val regex = Regex("[^A-Za-z0-9 ]")
+        return regex.replace(this, "")
+    }
+
+    /**
+     * extract string from string and return
+     */
+    private fun String.stringOnly(): String{
+        val regex = Regex("[^A-Za-z ]")
+        return regex.replace(this, "").trim()
+    }
+
+    /**
+     * For Show Log
+     */
+    private fun logPrint(value: String?) {
+        if (value == null) {
+            return
+        }
+        Log.i(LOG_TAG, value)
+    }
 }
