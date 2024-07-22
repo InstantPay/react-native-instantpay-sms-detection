@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -70,7 +71,14 @@ class SmsHelper {
         val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
 
         try {
-            mContext!!.registerReceiver(mReceiver, intentFilter)
+
+            if(Build.VERSION.SDK_INT >= 34 && mContext!!.applicationInfo.targetSdkVersion >= 34){
+                mContext!!.registerReceiver(mReceiver, intentFilter, Context.RECEIVER_EXPORTED)
+            }
+            else{
+                mContext!!.registerReceiver(mReceiver, intentFilter)
+            }
+
             return true
         }
         catch (e: Exception){
