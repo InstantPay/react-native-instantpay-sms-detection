@@ -32,7 +32,14 @@ const startSMSListen = async () => {
     let result = await RNSmsRead.startSmsRetriever();
 
     console.log(result);
-} 
+}
+
+const getSmsConsent = async () => {
+
+    let result = await RNSmsRead.requestSmsConsent();
+
+    console.log(result);
+}
 
 const listenOnChangeState = () => {
     RNSmsRead.addEventListener("StartSmsListener",handleConnection)
@@ -53,6 +60,7 @@ handleConnection = (resp) => {
 | :------------------------------ | :----------------- | :------------------------------------------------------ |
 | requestPhoneNumber()            | `Promise<String>`  | Obtain the user's phone number (using the hint picket). |
 | startSmsRetriever()             | `Promise<Boolean>` | Start to listen for SMS messages.                       |
+| getSmsConsent()                 | `Promise<Boolean>` | Get consent from user to get message                    |
 | addEventListener(               |                    |                                                         |
 |    eventName,                   |                    |                                                         |
 |    Function)                    | `Promise<String>`  | Get the SMS                                             |

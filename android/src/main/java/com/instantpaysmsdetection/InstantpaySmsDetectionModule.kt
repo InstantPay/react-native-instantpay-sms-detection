@@ -40,6 +40,8 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
 
         const val REQUEST_PHONE_NUMBER_CODE = 101
 
+        const val SMS_CONSENT_REQUEST_CODE = 102
+
         var isRequestForConsentSms = false
     }
 
@@ -64,6 +66,60 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
                     output.putString("phoneNumber", phoneNumber)
 
                     resolve("Successful", SUCCESS, output)
+                }
+                catch (e: Exception){
+                    resolve(e.message!!.stringOnly(), FAILED)
+                }
+            }
+
+            if(requestCode == SMS_CONSENT_REQUEST_CODE){
+
+                try {
+
+                    val params = mutableMapOf<String, String>()
+
+                    params["status"] = "FAILED"
+                    params["message"] = "Something went wrong #ISDAR1"
+
+                    if(resultCode == Activity.RESULT_OK && data !=null){
+                        // Get SMS message content
+
+                        val message = data.getStringExtra(SmsRetriever.EXTRA_SMS_MESSAGE)
+
+                        //val simSubscriptionId = data.getStringExtra(SmsRetriever.EXTRA_SIM_SUBSCRIPTION_ID)
+
+                        //val isPermission = data.getStringExtra(SmsRetriever.SEND_PERMISSION)
+
+                        params["status"] = "SUCCESS"
+
+                        params["message"] = "Got the user consent successfully"
+
+                        val dataObj = mutableMapOf<String, String>()
+                        dataObj["sms"] = message.toString()
+                        dataObj["simSubscriptionId"] = ""
+                        dataObj["sendPermission"] =  ""
+
+                        params["data"] = JSONObject(dataObj as Map<String, String>?).toString()
+
+                        params["actCode"] = "ACCEPTED"
+
+                        val outPer = CommonHelper.response(params)
+
+                        sendEvent(reactContexts, "StartSmsListener", outPer)
+
+                    }
+                    else{ // Consent denied. User can type OTC manually.
+
+                        params["status"] = "FAILED"
+
+                        params["message"] = "user has denied the consent"
+
+                        params["actCode"] = "REJECTED"
+
+                        val outPer = CommonHelper.response(params)
+
+                        sendEvent(reactContexts, "StartSmsListener", outPer)
+                    }
                 }
                 catch (e: Exception){
                     resolve(e.message!!.stringOnly(), FAILED)
@@ -104,7 +160,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
     }
 
     @ReactMethod
-    fun requestSmsConsent(promise: Promise){
+    fun requestSmsConsent(senderPhoneNumber:String? = null, promise: Promise){
 
         responsePromise = promise
 
@@ -112,8 +168,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
 
         isRequestForConsentSms = true
 
-        smsHelper.requestSmsConsent(reactContexts, activity!!, promise)
-
+        smsHelper.requestSmsConsent(senderPhoneNumber, reactContexts, activity!!, promise)
     }
 
     // Required for rn built in EventEmitter Calls.

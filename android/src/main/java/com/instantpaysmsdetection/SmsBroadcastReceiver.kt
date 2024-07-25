@@ -15,8 +15,6 @@ import org.json.JSONObject
 
 class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity: Activity) : BroadcastReceiver() {
 
-    val SMS_CONSENT_REQUEST_CODE = 102
-
     override fun onReceive(context: Context?, intent: Intent?) {
 
         if(SmsRetriever.SMS_RETRIEVED_ACTION == intent?.action){
@@ -50,12 +48,15 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
                         val consentIntent = extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
 
                         try {
-
-                            cActivity.startActivityForResult(consentIntent, SMS_CONSENT_REQUEST_CODE)
-
+                            cActivity.startActivityForResult(consentIntent, InstantpaySmsDetectionModule.SMS_CONSENT_REQUEST_CODE)
                         }
                         catch (e : Exception){
 
+                            params["exceptionMessage"] = e.message.toString()
+
+                            val outPer = CommonHelper.response(params)
+
+                            sendEvent(mContext, "StartSmsListener", outPer)
                         }
                     }
                     else{

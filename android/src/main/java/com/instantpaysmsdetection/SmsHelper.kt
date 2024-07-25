@@ -33,7 +33,13 @@ class SmsHelper {
             isSuccess = "Success"
         }
 
-        resolve("${isSuccess}, Please check on listener", SUCCESS, "", "ListenForSmsDetect")
+        var actCode = "ListenForSmsDetect";
+
+        if(InstantpaySmsDetectionModule.isRequestForConsentSms){
+            actCode = "ListenForSmsConsent"
+        }
+
+        resolve("${isSuccess}, Please check on listener", SUCCESS, "", actCode)
     }
 
     private val onFailureListener = OnFailureListener {
@@ -45,6 +51,8 @@ class SmsHelper {
      * Start Method to register service
      */
     fun startRetriever(context : ReactApplicationContext, activity : Activity, promise: Promise){
+
+        unregisterReceiverIfNeeded()
 
         responsePromise = promise
 
@@ -64,7 +72,9 @@ class SmsHelper {
     /**
      * Request one-time consent to read an SMS verification code
      */
-    fun requestSmsConsent(context : ReactApplicationContext, activity : Activity, promise: Promise){
+    fun requestSmsConsent(senderPhoneNumber: String? = null, context : ReactApplicationContext, activity : Activity, promise: Promise){
+
+        unregisterReceiverIfNeeded()
 
         responsePromise = promise
 
@@ -74,12 +84,11 @@ class SmsHelper {
 
         val smsRetrieverClient = SmsRetriever.getClient(context)
 
-        val tasks = smsRetrieverClient.startSmsUserConsent(null)
+        val tasks = smsRetrieverClient.startSmsUserConsent(senderPhoneNumber)
 
         tasks.addOnSuccessListener(onSuccessListener)
 
         tasks.addOnFailureListener(onFailureListener)
-
     }
 
     /**

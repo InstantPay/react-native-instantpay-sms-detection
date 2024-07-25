@@ -1,6 +1,6 @@
 {
   "name": "react-native-instantpay-sms-detection",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "SMS-based user verification in your Android app",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
