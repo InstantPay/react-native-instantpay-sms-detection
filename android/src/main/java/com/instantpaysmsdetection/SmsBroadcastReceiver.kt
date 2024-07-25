@@ -1,5 +1,6 @@
 package com.instantpaysmsdetection
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -12,7 +13,9 @@ import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
 import org.json.JSONObject
 
-class SmsBroadcastReceiver(var mContext: ReactApplicationContext) : BroadcastReceiver() {
+class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity: Activity) : BroadcastReceiver() {
+
+    val SMS_CONSENT_REQUEST_CODE = 102
 
     override fun onReceive(context: Context?, intent: Intent?) {
 
@@ -41,28 +44,46 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext) : BroadcastRec
             when(status.statusCode){
 
                 CommonStatusCodes.SUCCESS -> {
-                    val message = extras.get(SmsRetriever.EXTRA_SMS_MESSAGE)
 
-                    var simSubscriptionId = extras.get(SmsRetriever.EXTRA_SIM_SUBSCRIPTION_ID)
+                    if(InstantpaySmsDetectionModule.isRequestForConsentSms){
 
-                    var isPermission = extras.get(SmsRetriever.SEND_PERMISSION)
+                        val consentIntent = extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
 
-                    params["status"] = "SUCCESS"
+                        try {
 
-                    params["message"] = "Receiver SMS Successfully"
+                            cActivity.startActivityForResult(consentIntent, SMS_CONSENT_REQUEST_CODE)
 
-                    val dataObj = mutableMapOf<String, String>()
-                    dataObj["sms"] = message.toString()
-                    dataObj["simSubscriptionId"] = simSubscriptionId.toString()
-                    dataObj["sendPermission"] = isPermission.toString()
+                        }
+                        catch (e : Exception){
 
-                    params["data"] = JSONObject(dataObj as Map<String, String>?).toString()
+                        }
+                    }
+                    else{
 
-                    params["actCode"] = "SUCCESS"
+                        val message = extras.get(SmsRetriever.EXTRA_SMS_MESSAGE)
 
-                    val outPer = CommonHelper.response(params)
+                        var simSubscriptionId = extras.get(SmsRetriever.EXTRA_SIM_SUBSCRIPTION_ID)
 
-                    sendEvent(mContext, "StartSmsListener", outPer)
+                        var isPermission = extras.get(SmsRetriever.SEND_PERMISSION)
+
+                        params["status"] = "SUCCESS"
+
+                        params["message"] = "Receiver SMS Successfully"
+
+                        val dataObj = mutableMapOf<String, String>()
+                        dataObj["sms"] = message.toString()
+                        dataObj["simSubscriptionId"] = simSubscriptionId.toString()
+                        dataObj["sendPermission"] = isPermission.toString()
+
+                        params["data"] = JSONObject(dataObj as Map<String, String>?).toString()
+
+                        params["actCode"] = "SUCCESS"
+
+                        val outPer = CommonHelper.response(params)
+
+                        sendEvent(mContext, "StartSmsListener", outPer)
+                    }
+
                     return
                 }
 

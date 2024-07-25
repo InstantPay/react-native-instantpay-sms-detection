@@ -72,6 +72,9 @@ if(Platform.OS === "android"){
         },
         startSmsRetriever:() =>{
             return InstantpaySmsDetection.startSmsRetriever();
+        },
+        requestSmsConsent:() => {
+            return InstantpaySmsDetection.requestSmsConsent();
         }
     }
 

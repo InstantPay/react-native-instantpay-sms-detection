@@ -39,6 +39,8 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         private lateinit var reactContexts: ReactApplicationContext
 
         const val REQUEST_PHONE_NUMBER_CODE = 101
+
+        var isRequestForConsentSms = false
     }
 
     private val registerActivityResult = object : BaseActivityEventListener() {
@@ -99,6 +101,19 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         val activity = currentActivity
 
         smsHelper.startRetriever(reactContexts, activity!!, promise)
+    }
+
+    @ReactMethod
+    fun requestSmsConsent(promise: Promise){
+
+        responsePromise = promise
+
+        val activity = currentActivity
+
+        isRequestForConsentSms = true
+
+        smsHelper.requestSmsConsent(reactContexts, activity!!, promise)
+
     }
 
     // Required for rn built in EventEmitter Calls.

@@ -40,6 +40,13 @@ export default function App() {
         console.log('type ', resp);
     }
 
+    const getSmsConsent = async () => {
+
+        let out = await RNSmsRead.requestSmsConsent();
+
+        console.log('out :',out);
+    }
+
     return (
         <View style={styles.container}>
             <Text>Result: {result}</Text>
@@ -52,6 +59,11 @@ export default function App() {
             <Button 
                 title='Start SMS Listener'
                 onPress={() => startSMSListen()}
+            /> 
+            <Text></Text>
+            <Button 
+                title='SMS Consent'
+                onPress={() => getSmsConsent()}
             /> 
         </View>
     );

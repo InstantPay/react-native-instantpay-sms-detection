@@ -62,11 +62,32 @@ class SmsHelper {
     }
 
     /**
+     * Request one-time consent to read an SMS verification code
+     */
+    fun requestSmsConsent(context : ReactApplicationContext, activity : Activity, promise: Promise){
+
+        responsePromise = promise
+
+        mContext = context
+
+        cActivity = activity
+
+        val smsRetrieverClient = SmsRetriever.getClient(context)
+
+        val tasks = smsRetrieverClient.startSmsUserConsent(null)
+
+        tasks.addOnSuccessListener(onSuccessListener)
+
+        tasks.addOnFailureListener(onFailureListener)
+
+    }
+
+    /**
      * Register Broadcast to read sms
      */
     private fun tryToRegisterReceiver() : Boolean{
 
-        mReceiver = SmsBroadcastReceiver(mContext!!)
+        mReceiver = SmsBroadcastReceiver(mContext!!, cActivity!!)
 
         val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
 
