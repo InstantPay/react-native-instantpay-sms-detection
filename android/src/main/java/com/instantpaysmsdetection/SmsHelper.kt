@@ -128,6 +128,7 @@ class SmsHelper {
 
         try {
             mContext!!.unregisterReceiver(mReceiver);
+            mReceiver = null;
         } catch (e: Exception) {
             resolve("Something went wrong #URRSDP1", FAILED, "", "", e.message.toString())
         }
