@@ -1,12 +1,12 @@
 package com.instantpaysmsdetection
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.telephony.SubscriptionManager
 import android.util.Log
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
 import com.facebook.react.bridge.ReactApplicationContext
@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactContext
+import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.google.android.gms.auth.api.identity.Identity
@@ -173,6 +174,148 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         smsHelper.requestSmsConsent(senderPhoneNumber, reactContexts, activity!!, promise)
     }
 
+    @ReactMethod
+    fun simCardsInfo(options:String? = null, promise: Promise){
+
+        responsePromise = promise
+
+        val subscriptionManager = reactContexts.getSystemService(SubscriptionManager::class.java)
+
+        val hasPermission = reactContexts.checkSelfPermission(Manifest.permission.READ_PHONE_STATE)
+
+        if(PackageManager.PERMISSION_GRANTED == hasPermission){
+
+            val infoList = subscriptionManager?.activeSubscriptionInfoList
+
+            if(infoList!=null && infoList.size > 0){
+
+                val simInfoList: WritableArray = Arguments.createArray()
+
+                for (info in infoList){
+
+                    val itemList: WritableMap = Arguments.createMap()
+
+                    itemList.putString("displayName", info.displayName.toString())
+
+                    itemList.putString("simSlotIndex", info.simSlotIndex.toString())
+
+                    itemList.putString("iccId", info.iccId)
+
+                    itemList.putString("carrierName", info.carrierName.toString())
+
+                    itemList.putString("countryIso", info.countryIso)
+
+                    if(SubscriptionManager.DATA_ROAMING_ENABLE == info.dataRoaming){
+                        itemList.putString("dataRoaming", "ENABLE")
+                    }
+                    else{
+                        itemList.putString("dataRoaming", "DISABLE")
+                    }
+
+                    itemList.putString("iconTint", info.iconTint.toString())
+
+                    itemList.putString("subscriptionId", info.subscriptionId.toString())
+
+                    if(Build.VERSION.SDK_INT >= 29){
+
+                        itemList.putString("cardId", info.cardId.toString())
+
+                        itemList.putString("carrierId", info.carrierId.toString())
+
+                        itemList.putString("groupUuid", info.groupUuid.toString())
+
+                        itemList.putString("eSim", info.isEmbedded.toString())
+
+                        itemList.putString("isOpportunistic", info.isOpportunistic.toString())
+
+                        itemList.putString("mobileCountryCode", info.mccString.toString())
+
+                        itemList.putString("mobileNetworkCode", info.mncString.toString())
+
+                        if(SubscriptionManager.SUBSCRIPTION_TYPE_LOCAL_SIM == info.subscriptionType){
+                            itemList.putString("subscriptionType", "LOCAL_SIM")
+                        }
+                        else if(SubscriptionManager.SUBSCRIPTION_TYPE_REMOTE_SIM == info.subscriptionType){
+                            itemList.putString("subscriptionType", "REMOTE_SIM")
+                        }
+                        else{
+                            itemList.putString("subscriptionType", "")
+                        }
+                    }
+                    else{
+
+                        itemList.putString("cardId", "")
+
+                        itemList.putString("carrierId", "")
+
+                        itemList.putString("groupUuid", "")
+
+                        itemList.putString("eSim", "")
+
+                        itemList.putString("isOpportunistic", "")
+
+                        itemList.putString("mobileCountryCode", "")
+
+                        itemList.putString("mobileNetworkCode", "")
+
+                        itemList.putString("subscriptionType", "")
+                    }
+
+                    if(Build.VERSION.SDK_INT >=33){
+
+                        itemList.putString("portIndex", info.portIndex.toString())
+
+                        itemList.putString("usageSetting", info.usageSetting.toString())
+                    }
+                    else{
+                        itemList.putString("portIndex", "")
+
+                        itemList.putString("usageSetting", "")
+                    }
+
+                    simInfoList.pushMap(itemList)
+                }
+
+                return resolve("Success", SUCCESS, simInfoList)
+            }
+            else{
+                return resolve("No SIM Found on the device", FAILED, null, "NoSim")
+            }
+        }
+        else{
+            return resolve("Permission not found [READ_PHONE_STATE]", FAILED, null, "PermissionNotFound")
+        }
+    }
+
+    @ReactMethod
+    fun simCardPhoneNumber(subscriptionId:Int, promise: Promise){
+
+        responsePromise = promise
+
+        val subscriptionManager = reactContexts.getSystemService(SubscriptionManager::class.java)
+
+        if(Build.VERSION.SDK_INT >=33){
+
+            val hasPhoneNumberPermission = reactContexts.checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS)
+
+            if(hasPhoneNumberPermission == PackageManager.PERMISSION_GRANTED){
+                val phoneNumber = subscriptionManager.getPhoneNumber(subscriptionId);
+
+                val outputData: WritableMap = Arguments.createMap()
+
+                outputData.putString("phoneNumber", phoneNumber)
+
+                return resolve("Success",SUCCESS, outputData)
+            }
+            else{
+                return resolve("Permission not found [READ_PHONE_NUMBERS]", FAILED, null, "PermissionNotFound")
+            }
+        }
+        else{
+            return resolve("Not Supported in current android version [Available from Android 13]", FAILED, null, "NotSupported")
+        }
+    }
+
     // Required for rn built in EventEmitter Calls.
     @ReactMethod
     fun addListener(eventName: String?) {
@@ -201,6 +344,29 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         }
         else{
             map.putString("data", "")
+        }
+
+        responsePromise!!.resolve(map)
+        responsePromise = null
+    }
+
+    private fun resolve(message: String,status: String = FAILED,data: WritableArray ,actCode: String = ""){
+
+        if (responsePromise == null) {
+            return;
+        }
+
+        val map: WritableMap = Arguments.createMap()
+        map.putString("status", status)
+        map.putString("message", message)
+
+        if (data != null) {
+            if(data.size() > 0){
+                map.putArray("data",data)
+            }
+        }
+        else{
+            map.putString("data","")
         }
 
         responsePromise!!.resolve(map)
@@ -251,5 +417,19 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
             return
         }
         Log.i(LOG_TAG, value)
+    }
+
+    fun convertArrayListToWritableMap(arrayList: ArrayList<MutableMap<String, String>>): WritableArray {
+        val writableArray: WritableArray = Arguments.createArray()
+
+        for (map in arrayList) {
+            val writableMap: WritableMap = Arguments.createMap()
+            for ((key, value) in map) {
+                writableMap.putString(key, value)
+            }
+            writableArray.pushMap(writableMap)
+        }
+
+        return writableArray
     }
 }

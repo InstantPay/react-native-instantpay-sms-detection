@@ -75,6 +75,17 @@ if(Platform.OS === "android"){
         },
         requestSmsConsent:(senderPhoneNumber = null) => {
             return InstantpaySmsDetection.requestSmsConsent(senderPhoneNumber);
+        },
+        getSimCards:(options = '') => {
+
+            if(options!=null && options!='' && typeof options == 'object'){
+                options = JSON.stringify(options);
+            }
+
+            return InstantpaySmsDetection.simCardsInfo(options);
+        },
+        getSimCardPhoneNumber: (simSlotId:number) => {
+            return InstantpaySmsDetection.simCardPhoneNumber(simSlotId);
         }
     }
 

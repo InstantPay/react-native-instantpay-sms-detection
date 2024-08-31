@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, Button } from 'react-native';
+import { StyleSheet, View, Text, Button, PermissionsAndroid } from 'react-native';
 import RNSmsRead from 'react-native-instantpay-sms-detection';
 
 export default function App() {
@@ -47,6 +47,39 @@ export default function App() {
         console.log('out :',out);
     }
 
+    const getSimInfo = async () => {
+
+        let out = await RNSmsRead.getSimCards();
+
+        console.log('simInfo',out);
+    }
+
+    const getSimPhoneNumber = async () => {
+
+        /* const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_PHONE_NUMBERS,
+            {
+              title: 'Cool Photo App Camera Permission',
+              message:
+                'Cool Photo App needs access to your camera ' +
+                'so you can take awesome pictures.',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            console.log('You can use the camera');
+          } else {
+            console.log('Camera permission denied');
+          } */
+
+
+        let out = await RNSmsRead.getSimCardPhoneNumber(1);
+
+        console.log('simInfo',out);
+    }
+
     return (
         <View style={styles.container}>
             <Text>Result: {result}</Text>
@@ -64,6 +97,16 @@ export default function App() {
             <Button 
                 title='SMS Consent'
                 onPress={() => getSmsConsent()}
+            /> 
+            <Text></Text>
+            <Button 
+                title='SIM Info'
+                onPress={() => getSimInfo()}
+            /> 
+            <Text></Text>
+            <Button 
+                title='SIM Phone Number'
+                onPress={() => getSimPhoneNumber()}
             /> 
         </View>
     );
