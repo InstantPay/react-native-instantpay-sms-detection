@@ -338,6 +338,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         val map: WritableMap = Arguments.createMap()
         map.putString("status", status)
         map.putString("message", message)
+        map.putString("actCode", actCode)
 
         if(data != null){
             map.putMap("data", data)
@@ -359,6 +360,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Reac
         val map: WritableMap = Arguments.createMap()
         map.putString("status", status)
         map.putString("message", message)
+        map.putString("actCode", actCode)
 
         if (data != null) {
             if(data.size() > 0){
