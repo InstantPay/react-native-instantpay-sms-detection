@@ -9,7 +9,7 @@ import android.telephony.SubscriptionManager
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.BaseActivityEventListener
-import com.facebook.react.bridge.Callback
+//import com.facebook.react.bridge.Callback
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContext
@@ -64,7 +64,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 
 				try {
 
-					val phoneNumber = Identity.getSignInClient(currentActivity!!).getPhoneNumberFromIntent(data)
+					val phoneNumber = Identity.getSignInClient(activity).getPhoneNumberFromIntent(data)
 
 					val output: WritableMap = Arguments.createMap()
 					output.putString("phoneNumber", phoneNumber)
@@ -140,7 +140,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 
 		smsHelper = SmsHelper()
 
-		reactContexts.addActivityEventListener(registerActivityResult);
+		reactContexts.addActivityEventListener(registerActivityResult)
 	}
 
 	override fun addListener(eventName: String?) {
@@ -152,7 +152,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 	override fun requestPhoneNumber(promise: Promise) {
 		responsePromise = promise
 
-		val activity = currentActivity
+		val activity = reactContexts.getCurrentActivity()
 
 		phoneNumberHelper.requestPhoneNumber(reactContexts, activity!!, promise)
 	}
@@ -160,7 +160,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 	override fun startSmsRetriever(promise: Promise) {
 		responsePromise = promise
 
-		val activity = currentActivity
+		val activity = reactContexts.getCurrentActivity()
 
 		smsHelper.startRetriever(reactContexts, activity!!, promise)
 	}
@@ -171,7 +171,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 	) {
 		responsePromise = promise
 
-		val activity = currentActivity
+		val activity = reactContexts.getCurrentActivity()
 
 		isRequestForConsentSms = true
 
@@ -305,7 +305,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 			val hasPhoneNumberPermission = reactContexts.checkSelfPermission(Manifest.permission.READ_PHONE_NUMBERS)
 
 			if(hasPhoneNumberPermission == PackageManager.PERMISSION_GRANTED){
-				val phoneNumber = subscriptionManager.getPhoneNumber(subscriptionId.toInt());
+				val phoneNumber = subscriptionManager.getPhoneNumber(subscriptionId.toInt())
 
 				val outputData: WritableMap = Arguments.createMap()
 
@@ -328,7 +328,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 	private fun resolve(message: String,status: String = FAILED,data: WritableMap? = null ,actCode: String = "") {
 
 		if (responsePromise == null) {
-			return;
+			return
 		}
 
 		val map: WritableMap = Arguments.createMap()
@@ -350,7 +350,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 	private fun resolve(message: String,status: String = FAILED,data: WritableArray ,actCode: String = ""){
 
 		if (responsePromise == null) {
-			return;
+			return
 		}
 
 		val map: WritableMap = Arguments.createMap()
@@ -358,10 +358,8 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 		map.putString("message", message)
 		map.putString("actCode", actCode)
 
-		if (data != null) {
-			if(data.size() > 0){
-				map.putArray("data",data)
-			}
+		if(data.size() > 0){
+			map.putArray("data",data)
 		}
 		else{
 			map.putString("data","")
