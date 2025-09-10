@@ -90,12 +90,10 @@ const getSimPhoneNumber = async () => {
 | requestPhoneNumber()            | `Promise<String>`  | Obtain the user's phone number (using the hint picket). |
 | startSmsRetriever()             | `Promise<Boolean>` | Start to listen for SMS messages.                       |
 | getSmsConsent()                 | `Promise<Boolean>` | Get consent from user to get message                    |
-| addEventListener(eventName,Function)               |                    |                                                         |
-|                       |                    |                                                         |
-|                        | `Promise<String>`  | Get the SMS                                             |
+| addEventListener(eventName,Function)                 | `Promise<String>` | Get the SMS                         |
 | removeEventListener()           | `Void`             | Stop to listen for SMS messages.                        |
-| getSimCards()                  | `Promise<String>`   | Get SIM Related Information messages.                        |
-| getSimCardPhoneNumber()        | `Promise<Int>`     | Get Phone Number after pass SIM slot id.                              |
+| getSimCards()                  | `Promise<String>`   | Get SIM Related Information messages.                   |
+| getSimCardPhoneNumber()        | `Promise<Int>`      | Get Phone Number after pass SIM slot id.                |
 
 ## License
 
