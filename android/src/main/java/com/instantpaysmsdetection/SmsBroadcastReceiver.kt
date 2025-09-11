@@ -34,10 +34,10 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
 
                 sendEvent(mContext, "StartSmsListener", outPer)
 
-                return;
+                return
             }
 
-            val status = extras.get(SmsRetriever.EXTRA_STATUS) as Status
+            val status = extras.getInt(SmsRetriever.EXTRA_STATUS) as Status
 
             when(status.statusCode){
 
@@ -61,11 +61,11 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
                     }
                     else{
 
-                        val message = extras.get(SmsRetriever.EXTRA_SMS_MESSAGE)
+                        val message = extras.getString(SmsRetriever.EXTRA_SMS_MESSAGE)
 
-                        var simSubscriptionId = extras.get(SmsRetriever.EXTRA_SIM_SUBSCRIPTION_ID)
+                        var simSubscriptionId = extras.getString(SmsRetriever.EXTRA_SIM_SUBSCRIPTION_ID)
 
-                        var isPermission = extras.get(SmsRetriever.SEND_PERMISSION)
+                        var isPermission = extras.getString(SmsRetriever.SEND_PERMISSION)
 
                         params["status"] = "SUCCESS"
 
@@ -76,7 +76,7 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
                         dataObj["simSubscriptionId"] = simSubscriptionId.toString()
                         dataObj["sendPermission"] = isPermission.toString()
 
-                        params["data"] = JSONObject(dataObj as Map<String, String>?).toString()
+                        params["data"] = JSONObject(dataObj as Map<*, *>).toString()
 
                         params["actCode"] = "SUCCESS"
 

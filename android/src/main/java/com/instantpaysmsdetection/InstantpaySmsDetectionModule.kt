@@ -103,7 +103,7 @@ class InstantpaySmsDetectionModule(reactContext: ReactApplicationContext) : Nati
 						dataObj["simSubscriptionId"] = ""
 						dataObj["sendPermission"] =  ""
 
-						params["data"] = JSONObject(dataObj as Map<String, String>?).toString()
+						params["data"] = JSONObject(dataObj as Map<*, *>).toString()
 
 						params["actCode"] = "ACCEPTED"
 

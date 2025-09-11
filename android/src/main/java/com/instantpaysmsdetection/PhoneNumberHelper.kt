@@ -72,7 +72,7 @@ class PhoneNumberHelper {
     private fun resolve(message: String,status: String = FAILED,data: String = "",actCode: String = "", exceptionMessage: String = "") {
 
         if (responsePromise == null) {
-            return;
+            return
         }
 
         val map: WritableMap = Arguments.createMap()
