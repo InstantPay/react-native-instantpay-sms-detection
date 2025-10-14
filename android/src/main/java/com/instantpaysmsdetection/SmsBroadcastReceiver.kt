@@ -52,7 +52,7 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
                             val expectedAction = "com.google.android.gms.auth.api.phone.ACTION_USER_CONSENT"
                             val expectedPackage = "com.google.android.gms"
 
-                            if (consentIntent.package == expectedPackage &&  consentIntent.action == expectedAction){
+                            if (consentIntent?.`package` == expectedPackage &&  consentIntent.action == expectedAction){
                                 cActivity.startActivityForResult(consentIntent, InstantpaySmsDetectionModule.SMS_CONSENT_REQUEST_CODE)
                             }
                             else{
