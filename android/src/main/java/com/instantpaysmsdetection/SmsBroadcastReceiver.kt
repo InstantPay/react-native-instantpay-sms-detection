@@ -12,6 +12,7 @@ import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.android.gms.common.api.CommonStatusCodes
 import com.google.android.gms.common.api.Status
 import org.json.JSONObject
+import android.content.pm.ResolveInfo
 
 class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity: Activity) : BroadcastReceiver() {
 
@@ -47,13 +48,31 @@ class SmsBroadcastReceiver(var mContext: ReactApplicationContext, var cActivity:
 
                         val consentIntent = extras.getParcelable<Intent>(SmsRetriever.EXTRA_CONSENT_INTENT)
 
+                        if (consentIntent == null) {
+                            params["exceptionMessage"] = "Consent intent is null"
+                            val outPer = CommonHelper.response(params)
+                            sendEvent(mContext, "StartSmsListener", outPer)
+                            return
+                        }
+
                         try {
 
                             val expectedAction = "com.google.android.gms.auth.api.phone.ACTION_USER_CONSENT"
                             val expectedPackage = "com.google.android.gms"
 
                             if (consentIntent?.`package` == expectedPackage &&  consentIntent.action == expectedAction){
-                                cActivity.startActivityForResult(consentIntent, InstantpaySmsDetectionModule.SMS_CONSENT_REQUEST_CODE)
+
+                                val pm = context?.packageManager
+                                val resolved: ResolveInfo? = pm?.resolveActivity(consentIntent, 0)
+                                val resolvedPackage = resolved?.activityInfo?.packageName
+                                if (resolvedPackage == expectedPackage) {
+                                    cActivity.startActivityForResult(consentIntent, InstantpaySmsDetectionModule.SMS_CONSENT_REQUEST_CODE)
+                                }
+                                else{
+                                    params["exceptionMessage"] = "Invalid Action Found on Expected Action"
+                                    val outPer = CommonHelper.response(params)
+                                    sendEvent(mContext, "StartSmsListener", outPer)
+                                }
                             }
                             else{
 
